@@ -1,6 +1,5 @@
 import os
 import math
-from functools import lru_cache
 from flask import Flask, jsonify, request, render_template, send_from_directory
 import openpyxl
 from google import genai
