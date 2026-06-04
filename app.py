@@ -7,9 +7,6 @@ from google import genai
 from google.genai import types as genai_types
 
 
-import os
-from dotenv import load_dotenv # Make sure this is installed: pip install python-dotenv
-from google import genai
 
 
 
