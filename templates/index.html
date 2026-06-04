@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EM-DAT Disaster Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<!-- Page loader -->
+<div id="page-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-title">EM-DAT Disaster Dashboard</div>
+  <div class="loader-sub" id="loader-sub">Fetching data…</div>
+</div>
+
+<div class="app-wrap">
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="header-title">
+        <h1>EM-DAT Disaster Dashboard</h1>
+        <p id="subtitle">Global Emergency Events Database</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" onclick="refreshAll()">&#x21bb; Refresh</button>
+        <button class="btn-icon" onclick="window.print()">&#x1F5A8;</button>
+        <button class="btn-icon" id="themeBtn" onclick="toggleTheme()">&#x263D;</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab-list">
+        <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+        <button class="tab-btn" onclick="switchTab('custom',this)">Custom Chart Builder</button>
+        <button class="tab-btn" onclick="switchTab('explorer',this)">Data Explorer</button>
+        <button class="tab-btn" onclick="switchTab('ai',this)">AI Assistant</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Overview Tab ─────────────────────────────────────────────────── -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="filters">
+      <div class="filter-group">
+        <label>Start Year</label>
+        <input type="number" id="ov-startYear" value="1900" min="1900" max="2026" oninput="applyOverviewFilters()"/>
+      </div>
+      <div class="filter-group">
+        <label>End Year</label>
+        <input type="number" id="ov-endYear" value="2026" min="1900" max="2026" oninput="applyOverviewFilters()"/>
+      </div>
+      <div class="filter-group">
+        <label>Disaster Type</label>
+        <select id="ov-type" onchange="applyOverviewFilters()">
+          <option value="">All Types</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Region</label>
+        <select id="ov-region" onchange="applyOverviewFilters()">
+          <option value="">All Regions</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Events</div>
+        <div class="kpi-value" id="kpi-events" style="color:var(--sage)">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Deaths</div>
+        <div class="kpi-value" id="kpi-deaths" style="color:var(--rose)">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Affected</div>
+        <div class="kpi-value" id="kpi-affected" style="color:var(--slate)">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Damage (USD)</div>
+        <div class="kpi-value" id="kpi-damage" style="color:var(--mauve)">—</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+      <div class="chart-card chart-card-full">
+        <div class="chart-header">
+          <span class="chart-title">Disasters &amp; Deaths by Year</span>
+          <button class="btn-icon" onclick="downloadChart('byYearChart')">&#x2913;</button>
+        </div>
+        <canvas id="byYearChart" height="90"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Disasters by Type</span>
+          <button class="btn-icon" onclick="downloadChart('byTypeChart')">&#x2913;</button>
+        </div>
+        <canvas id="byTypeChart" height="260"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Disasters by Region</span>
+          <button class="btn-icon" onclick="downloadChart('byRegionChart')">&#x2913;</button>
+        </div>
+        <canvas id="byRegionChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Top 15 Countries by Events</span>
+          <button class="btn-icon" onclick="downloadChart('byCountryChart')">&#x2913;</button>
+        </div>
+        <canvas id="byCountryChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Deaths by Disaster Type</span>
+          <button class="btn-icon" onclick="downloadChart('deathsTypeChart')">&#x2913;</button>
+        </div>
+        <canvas id="deathsTypeChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Economic Damage by Type</span>
+          <button class="btn-icon" onclick="downloadChart('damageTypeChart')">&#x2913;</button>
+        </div>
+        <canvas id="damageTypeChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Disasters by Month</span>
+          <button class="btn-icon" onclick="downloadChart('byMonthChart')">&#x2913;</button>
+        </div>
+        <canvas id="byMonthChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Human Impact Trend by Decade</span>
+          <button class="btn-icon" onclick="downloadChart('affectedTrendChart')">&#x2913;</button>
+        </div>
+        <canvas id="affectedTrendChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Aid Contribution by Region</span>
+          <button class="btn-icon" onclick="downloadChart('aidRegionChart')">&#x2913;</button>
+        </div>
+        <canvas id="aidRegionChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Deaths vs Affected Over Time</span>
+          <button class="btn-icon" onclick="downloadChart('deathsAffectedChart')">&#x2913;</button>
+        </div>
+        <canvas id="deathsAffectedChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Custom Chart Tab ──────────────────────────────────────────────── -->
+  <div id="tab-custom" class="tab-panel">
+    <div class="custom-controls">
+      <div class="filter-group">
+        <label>X Axis</label>
+        <select id="cc-x">
+          <option>Disaster Type</option>
+          <option>Disaster Subtype</option>
+          <option>Region</option>
+          <option>Subregion</option>
+          <option>Country</option>
+          <option>Disaster Group</option>
+          <option>Decade</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Y Axis</label>
+        <select id="cc-y">
+          <option>Count</option>
+          <option>Total Deaths</option>
+          <option>Total Affected</option>
+          <option>Total Damage (USD)</option>
+          <option>AID Contribution (USD)</option>
+          <option>No. Injured</option>
+          <option>No. Homeless</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Chart Type</label>
+        <select id="cc-chartType">
+          <option>Bar</option>
+          <option>Horizontal Bar</option>
+          <option>Pie</option>
+          <option>Line</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Start Year</label>
+        <input type="number" id="cc-startYear" value="1900"/>
+      </div>
+      <div class="filter-group">
+        <label>End Year</label>
+        <input type="number" id="cc-endYear" value="2026"/>
+      </div>
+      <div class="filter-group">
+        <label>Top N</label>
+        <select id="cc-limit">
+          <option value="10">Top 10</option>
+          <option value="20" selected>Top 20</option>
+          <option value="30">Top 30</option>
+          <option value="50">Top 50</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="buildCustomChart()">Generate Chart</button>
+      <button class="btn-outline" id="cc-csvBtn" onclick="downloadCustomCsv()" style="display:none">Export CSV</button>
+    </div>
+    <div class="custom-chart-result chart-card" id="cc-card" style="display:none">
+      <div class="chart-header">
+        <span class="chart-title" id="cc-title"></span>
+        <button class="btn-icon" onclick="downloadChart('customChart')">&#x2913;</button>
+      </div>
+      <canvas id="customChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Data Explorer Tab ─────────────────────────────────────────────── -->
+  <div id="tab-explorer" class="tab-panel">
+    <div class="explorer-toolbar">
+      <input type="search" class="search-input" id="ex-search" placeholder="Search country, type, region…" oninput="loadExplorer()"/>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="search-input" id="ex-type" onchange="loadExplorer()" style="min-width:140px">
+          <option value="">All Types</option>
+        </select>
+        <select class="search-input" id="ex-region" onchange="loadExplorer()" style="min-width:130px">
+          <option value="">All Regions</option>
+        </select>
+        <button class="btn-outline" onclick="exportExplorerCsv()">Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortExplorer('year')">Year <span id="sort-year"></span></th>
+            <th onclick="sortExplorer('type')">Type <span id="sort-type"></span></th>
+            <th onclick="sortExplorer('country')">Country <span id="sort-country"></span></th>
+            <th onclick="sortExplorer('region')">Region <span id="sort-region"></span></th>
+            <th onclick="sortExplorer('deaths')">Deaths <span id="sort-deaths"></span></th>
+            <th onclick="sortExplorer('affected')">Affected <span id="sort-affected"></span></th>
+            <th onclick="sortExplorer('damage')">Damage (USD) <span id="sort-damage"></span></th>
+            <th onclick="sortExplorer('aid')">Aid (USD) <span id="sort-aid"></span></th>
+            <th>Subtype</th>
+          </tr>
+        </thead>
+        <tbody id="ex-tbody"></tbody>
+      </table>
+      <div class="pagination">
+        <button class="btn-icon" id="ex-prev" onclick="explorerPage(-1)">&#8592;</button>
+        <span id="ex-page-info">Page 1</span>
+        <button class="btn-icon" id="ex-next" onclick="explorerPage(1)">&#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI Assistant Tab ──────────────────────────────────────────────── -->
+  <div id="tab-ai" class="tab-panel">
+    <div class="ai-layout">
+      <div class="ai-sidebar">
+        <div class="ai-card">
+          <div class="ai-card-header"><h3>Suggested Questions</h3></div>
+          <div class="starter-list" id="starter-list"></div>
+        </div>
+        <div class="ai-card">
+          <div class="ai-note">
+            The AI has country-level data for all 200+ nations — event counts, deaths, affected populations, economic damage, and per-country disaster type breakdowns spanning 1900–2026.
+          </div>
+        </div>
+      </div>
+      <div class="chat-window">
+        <div class="chat-header">
+          <span>&#x1F916;</span> Disaster Intelligence Assistant
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-footer">
+          <input type="text" class="chat-input" id="chat-input"
+            placeholder="Ask about any country, disaster type, region, or trend…"
+            onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="chat-send" onclick="sendChat()">&#x279C;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /.app-wrap -->
+
+<!-- Scroll to top button -->
+<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8679;</button>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <span>&copy; <span id="yr"></span> <strong>Muhammad Ali Abid</strong> &mdash; SAP ID: 70175812</span>
+    <span>EM-DAT Disaster Dashboard &middot; Data sourced from the International Disaster Database (EM-DAT)</span>
+    <span>Licensed for academic use</span>
+  </div>
+</footer>
+
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>
